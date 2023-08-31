@@ -9,9 +9,7 @@ import (
 type Response struct {
 	Status string
 }
-
-type Request struct {
-}
+type Request struct {}
 
 func main() {
 	sway := flag.Bool("sway", false, "sway operation")
@@ -31,7 +29,7 @@ func main() {
 	req := &Request{}
 	var res Response
 
-	err = client.Call("JumplistNav.Forward", req, &res)
+	err = client.Call("JumplistNav.Back", req, &res)
 	if err != nil {
 		log.Fatalf("error in rpc: %s", err)
 	}

@@ -1,0 +1,21 @@
+schema = 3
+
+[mod]
+  [mod."github.com/BurntSushi/xgb"]
+    version = "v0.0.0-20210121224620-deaf085860bc"
+    hash = "sha256-BOkuWOpYyQcuA+2fvlebJVU07Ts0hYsskCSScM9ozWY="
+  [mod."github.com/BurntSushi/xgbutil"]
+    version = "v0.0.0-20190907113008-ad855c713046"
+    hash = "sha256-klGGuCrpEWONhkL2IG9LIWrsUZhr1CZ53QAmlxVigIo="
+  [mod."github.com/google/go-cmp"]
+    version = "v0.2.0"
+    hash = "sha256-uk0NSxut7p7/Xid6sikxaE5mNZcQMKe2RlaneUQHe7k="
+  [mod."go.i3wm.org/i3/v4"]
+    version = "v4.21.0"
+    hash = "sha256-bXAddnSQl/oE89T5bIAcHWuXEuXkbEYWvOJyxRze1kw="
+  [mod."golang.org/x/net"]
+    version = "v0.0.0-20181102091132-c10e9556a7bc"
+    hash = "sha256-ayIIsgeEFerP6qbKr9oUvTZtY8aX/UD21oBKEDOBrdQ="
+  [mod."golang.org/x/sync"]
+    version = "v0.0.0-20180314180146-1d60e4601c6f"
+    hash = "sha256-RmeyJRAh4IqkXr6La1hU2G1GtKEr9VNywH1S8a2i0hA="
