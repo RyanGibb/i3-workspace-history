@@ -5,10 +5,10 @@ Do you want to navigate to that workspace you were at two, three, or more, works
 Inspired by Vim's jumplist, this program allows traversing your i3 or sway workspace history.
 
 The server subscribes to the i3/sway IPC and listens for workspace events, and maintains a list of workspace visited.
-The back/forward executables use an RPC over a Unix domain socket to communicate to the server to use the IPC interface to switch workspace.
+The back/forward modes use an RPC over a Unix domain socket to communicate to the server, which then uses the i3/sway IPC interface to switch workspace.
 
-The jumplist history works like vim's, so while traversing the list stays constant.
-If you switch workspace using normal mechanisms while traversing the history, the history will not be truncated, rather we will back to the end of the history and the new workspace will be appended.
+The history works like vim's jumplist, so while traversing it the list stays constant.
+If you switch workspace while traversing the history, the history will not be truncated, rather the new workspace will be appended to the history.
 
 To enable sway support, invoke the executables with `-sway` as a command line argument.
 Different domain sockets are used for i3 and sway, so this should work for both running at the same time, though this is untested.
