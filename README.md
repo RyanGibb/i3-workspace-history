@@ -20,7 +20,4 @@ bindsym $mod+o exec i3-workspace-history -mode=back
 exec i3-workspace-history
 ```
 
-With the appropriate path to the project.
-
 This project can be built using Nix with `nix build .`, or go with `go build i3-workspace-history.go`.
-
