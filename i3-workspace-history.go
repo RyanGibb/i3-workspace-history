@@ -75,12 +75,8 @@ func (*JumplistNav) Forward(req Request, res *Response) (err error) {
 	return
 }
 
-func main() {
-	sway := flag.Bool("sway", false, "sway operation")
-	flag.Parse()
-	var rpcEndpoint string
-	if *sway {
-		rpcEndpoint = "/tmp/swayjumplist-socket"
+func server(sway bool, rpcEndpoint string) {
+	if sway {
 		i3.SocketPathHook = func() (string, error) {
 			out, err := exec.Command("sway", "--get-socketpath").CombinedOutput()
 			if err != nil {
@@ -96,8 +92,6 @@ func main() {
 			}
 			return bytes.Compare(out, []byte("1")) == 0
 		}
-	} else {
-		rpcEndpoint = "/tmp/i3jumplist-socket"
 	}
 
 	go func() {
@@ -135,4 +129,63 @@ func main() {
 	go rpc.Accept(listener)
 
 	select{}
+}
+
+func forward(sway bool, rpcEndpoint string) {
+	client, err := rpc.Dial("unix", rpcEndpoint)
+	if err != nil {
+		log.Fatalf("failed: %s", err)
+	}
+
+	req := &Request{}
+	var res Response
+
+	err = client.Call("JumplistNav.Forward", req, &res)
+	if err != nil {
+		log.Fatalf("error in rpc: %s", err)
+	}
+
+	log.Println(res.Status)
+}
+
+func back(sway bool, rpcEndpoint string) {
+	client, err := rpc.Dial("unix", rpcEndpoint)
+	if err != nil {
+		log.Fatalf("failed: %s", err)
+	}
+
+	req := &Request{}
+	var res Response
+
+	err = client.Call("JumplistNav.Back", req, &res)
+	if err != nil {
+		log.Fatalf("error in rpc: %s", err)
+	}
+
+	log.Println(res.Status)
+}
+
+func main() {
+	sway := flag.Bool("sway", false, "Sway operation.")
+	mode := flag.String("mode", "server", "Either server, back, or forward.")
+	flag.Parse()
+	var rpcEndpoint string
+	if *sway {
+		rpcEndpoint = "/tmp/swayjumplist-socket"
+	} else {
+		rpcEndpoint = "/tmp/i3jumplist-socket"
+	}
+
+	switch *mode {
+		case "server":
+			server(*sway, rpcEndpoint)
+		case "back":
+			back(*sway, rpcEndpoint)
+		case "forward":
+			forward(*sway, rpcEndpoint)
+		default:
+			fmt.Fprintln(os.Stderr, "Mode must be one of server, back, or forward.\n\n" +
+				"Usage: i3-workspace-history")
+			os.Exit(1)
+	}
 }

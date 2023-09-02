@@ -2,7 +2,7 @@
 
 Inspired by Vim's jumplist, this program allows traversing your i3 or sway workspace history.
 
-The server subscribes to the IPC and listens for workspace events, and maintains a history.
+The server subscribes to the i3/sway IPC and listens for workspace events, and maintains a list of workspace visited.
 The back/forward executables use an RPC over a Unix domain socket to communicate to the server to use the IPC interface to switch workspace.
 
 The jumplist history works like vim's, so while traversing the list stays constant.
@@ -13,11 +13,12 @@ Different domain sockets are used for i3 and sway, so this should work for both 
 
 You might find the following configuration useful:
 ```
-bindsym $mod+i exec i3-workspace-history/bin/forward
-bindsym $mod+o exec i3-workspace-history/bin/back
-exec i3-workspace-history/bin/server
+bindsym $mod+i exec i3-workspace-history -mode=forward
+bindsym $mod+o exec i3-workspace-history -mode=back
+exec i3-workspace-history
 ```
 
 With the appropriate path to the project.
 
-This project can be built using Nix flakes `nix build .`, or using go.
+This project can be built using Nix with `nix build .`, or go with `go build i3-workspace-history.go`.
+
