@@ -1,5 +1,7 @@
 # i3-workspace-history
 
+Is `workspace back_and_forth` not enough?
+Do you want to navigate to that workspace you were at two, three, or more, workspaces ago?
 Inspired by Vim's jumplist, this program allows traversing your i3 or sway workspace history.
 
 The server subscribes to the i3/sway IPC and listens for workspace events, and maintains a list of workspace visited.
