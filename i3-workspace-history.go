@@ -15,9 +15,10 @@ import (
 )
 
 var jumplist []string
-var pointer int
+var index int
 var next string
-var going bool
+var navigating bool
+var start_navigating bool
 
 type Response struct {
 	Status string
@@ -30,15 +31,18 @@ func (*JumplistNav) Back(req Request, res *Response) (err error) {
 		res.Status = "ignoring client due to empty jumplist"
 		return
 	}
-	if pointer >= len(jumplist) - 1 {
+	if index <= 0 {
 		res.Status = "at end of history"
 		return
 	}
-	pointer++
-	index := len(jumplist) - 1 - pointer
+	index--;
 	next = jumplist[index]
-	going = true
 	log.Printf("go to: %s", next)
+
+	navigating = true
+	if index == len(jumplist) - 1 {
+		start_navigating = true
+	}
 
 	_, err = i3.RunCommand(fmt.Sprintf("workspace %s", next))
 	if err != nil && !i3.IsUnsuccessful(err) {
@@ -55,14 +59,12 @@ func (*JumplistNav) Forward(req Request, res *Response) (err error) {
 		res.Status = "ignoring client due to empty jumplist"
 		return
 	}
-	if pointer <= 0 {
+	if index >= len(jumplist) - 1 {
 		res.Status = "at end of history"
 		return
 	}
-	pointer--
-	index := len(jumplist) - 1 - pointer
+	index++
 	next = jumplist[index]
-	going = true
 	log.Printf("go to: %s", next)
 
 	_, err = i3.RunCommand(fmt.Sprintf("workspace %s", next))
@@ -99,26 +101,35 @@ func server(sway bool, rpcEndpoint string) {
 		for recv.Next() {
 			ev := recv.Event().(*i3.WorkspaceEvent)
 			if ev.Change == "focus" {
-				if going && next == ev.Current.Name {
-					going = false
-					log.Printf("gone to: %s", next)
-				} else {
+				if navigating && next != ev.Current.Name {
+					navigating = false
+					start_navigating = false
+					index = len(jumplist)
+					log.Printf("no longer navigating history")
+				} else if !navigating || start_navigating {
 					for i, e := range jumplist {
-						if e == ev.Current.Name {
+						if e == ev.Old.Name {
 							jumplist = append(jumplist[:i], jumplist[i+1:]...)
+							if start_navigating {
+								index--
+							}
 							break
 						}
 					}
-					jumplist = append(jumplist, ev.Current.Name)
-					pointer = 0
+					jumplist = append(jumplist, ev.Old.Name)
+					if !start_navigating {
+						index = len(jumplist)
+					} else {
+						start_navigating = false
+					}
 				}
 				log.Printf("current jumplist: %s", jumplist)
-				log.Printf("current pointer: %s", pointer)
+				log.Printf("current index: %s", index)
 			}
 		}
 	}()
 
-	pointer = 0
+	index = 0
 	rpc.Register(&JumplistNav{})
 	os.Remove(rpcEndpoint)
 	listener, err := net.Listen("unix", rpcEndpoint)
