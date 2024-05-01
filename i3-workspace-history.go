@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"bytes"
 	"flag"
+	"strings"
 )
 
 var jumplist []string
@@ -19,6 +20,7 @@ var index int
 var next string
 var navigating bool
 var start_navigating bool
+var notify_id string
 
 type Response struct {
 	Status string
@@ -101,6 +103,14 @@ func server(sway bool, rpcEndpoint string) {
 		for recv.Next() {
 			ev := recv.Event().(*i3.WorkspaceEvent)
 			if ev.Change == "focus" {
+				log.Printf( notify_id)
+				out, err := exec.Command("notify-send", "-t", "500", "-p", "-r", notify_id, "workspace: " + ev.Current.Name).CombinedOutput()
+				if err != nil {
+					log.Printf("notify-send: %v (output: %s)", err, out)
+				} else {
+					notify_id = strings.TrimSpace(string(out))
+				}
+
 				if navigating && next != ev.Current.Name {
 					navigating = false
 					start_navigating = false
@@ -130,6 +140,8 @@ func server(sway bool, rpcEndpoint string) {
 	}()
 
 	index = 0
+	// some unlikely id
+	notify_id = "9999999"
 	rpc.Register(&JumplistNav{})
 	os.Remove(rpcEndpoint)
 	listener, err := net.Listen("unix", rpcEndpoint)
