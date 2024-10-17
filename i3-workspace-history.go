@@ -3,17 +3,17 @@ package main
 // adapted from https://gist.github.com/adamws/6109404639b554a3e18fac33cd1ca68f
 
 import (
-	"fmt"
-	"net"
-	"net/rpc"
-	"go.i3wm.org/i3/v4"
-	"log"
-	"os"
-	"os/exec"
 	"bytes"
 	"flag"
-    "regexp"
-    "strconv"
+	"fmt"
+	"go.i3wm.org/i3/v4"
+	"log"
+	"net"
+	"net/rpc"
+	"os"
+	"os/exec"
+	"regexp"
+	"strconv"
 )
 
 var jumplist []interface{} // updated to handle both int and string types
@@ -30,8 +30,8 @@ type JumplistNav struct{}
 
 // Function to extract the workspace number from the workspace name, or use the name if no number is present
 func extractWorkspaceNumberOrName(name string) interface{} {
-    re := regexp.MustCompile(`^\d+`)
-    numberStr := re.FindString(name)
+	re := regexp.MustCompile(`^\d+`)
+	numberStr := re.FindString(name)
 	if numberStr != "" {
 		if number, err := strconv.Atoi(numberStr); err == nil {
 			return number
@@ -65,12 +65,12 @@ func (*JumplistNav) Back(req Request, res *Response) (err error) {
 		res.Status = "at end of history"
 		return
 	}
-    index--
+	index--
 	next = jumplist[index]
-    log.Printf("go to: %d", next)
+	log.Printf("go to: %d", next)
 
 	navigating = true
-    if index == len(jumplist)-1 {
+	if index == len(jumplist)-1 {
 		start_navigating = true
 	}
 
@@ -89,13 +89,13 @@ func (*JumplistNav) Forward(req Request, res *Response) (err error) {
 		res.Status = "ignoring client due to empty jumplist"
 		return
 	}
-    if index >= len(jumplist)-1 {
+	if index >= len(jumplist)-1 {
 		res.Status = "at end of history"
 		return
 	}
 	index++
 	next = jumplist[index]
-    log.Printf("go to: %d", next)
+	log.Printf("go to: %d", next)
 
 	err = runWorkspaceCommand(next)
 	if err != nil && !i3.IsUnsuccessful(err) {
@@ -116,7 +116,7 @@ func server(sway bool, rpcEndpoint string) {
 			}
 			return string(out), nil
 		}
-	
+
 		i3.IsRunningHook = func() bool {
 			out, err := exec.Command("pgrep", "-c", "sway\\$").CombinedOutput()
 			if err != nil {
@@ -156,8 +156,8 @@ func server(sway bool, rpcEndpoint string) {
 						start_navigating = false
 					}
 				}
-                log.Printf("current jumplist: %v", jumplist)
-                log.Printf("current index: %d", index)
+				log.Printf("current jumplist: %v", jumplist)
+				log.Printf("current index: %d", index)
 			}
 		}
 	}()
@@ -172,7 +172,7 @@ func server(sway bool, rpcEndpoint string) {
 
 	go rpc.Accept(listener)
 
-    select {}
+	select {}
 }
 
 func forward(sway bool, rpcEndpoint string) {
@@ -221,15 +221,15 @@ func main() {
 	}
 
 	switch *mode {
-		case "server":
-			server(*sway, rpcEndpoint)
-		case "back":
-			back(*sway, rpcEndpoint)
-		case "forward":
-			forward(*sway, rpcEndpoint)
-		default:
-        fmt.Fprintln(os.Stderr, "Mode must be one of server, back, or forward.\n\n"+
-				"Usage: i3-workspace-history")
-			os.Exit(1)
+	case "server":
+		server(*sway, rpcEndpoint)
+	case "back":
+		back(*sway, rpcEndpoint)
+	case "forward":
+		forward(*sway, rpcEndpoint)
+	default:
+		fmt.Fprintln(os.Stderr, "Mode must be one of server, back, or forward.\n\n"+
+			"Usage: i3-workspace-history")
+		os.Exit(1)
 	}
 }
