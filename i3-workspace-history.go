@@ -12,19 +12,49 @@ import (
 	"os/exec"
 	"bytes"
 	"flag"
+    "regexp"
+    "strconv"
 )
 
-var jumplist []string
+var jumplist []interface{} // updated to handle both int and string types
 var index int
-var next string
+var next interface{}
 var navigating bool
 var start_navigating bool
 
 type Response struct {
 	Status string
 }
-type Request struct {}
+type Request struct{}
 type JumplistNav struct{}
+
+// Function to extract the workspace number from the workspace name, or use the name if no number is present
+func extractWorkspaceNumberOrName(name string) interface{} {
+    re := regexp.MustCompile(`^\d+`)
+    numberStr := re.FindString(name)
+	if numberStr != "" {
+		if number, err := strconv.Atoi(numberStr); err == nil {
+			return number
+		}
+	}
+	return name
+}
+
+// Function to run the appropriate command based on the type of workspace (number or name)
+func runWorkspaceCommand(workspace interface{}) error {
+	var command string
+	switch ws := workspace.(type) {
+	case int:
+		command = fmt.Sprintf("workspace number %d", ws)
+	case string:
+		command = fmt.Sprintf("workspace %s", ws)
+	default:
+		return fmt.Errorf("invalid workspace type")
+	}
+
+	_, err := i3.RunCommand(command)
+	return err
+}
 
 func (*JumplistNav) Back(req Request, res *Response) (err error) {
 	if len(jumplist) < 1 {
@@ -35,16 +65,16 @@ func (*JumplistNav) Back(req Request, res *Response) (err error) {
 		res.Status = "at end of history"
 		return
 	}
-	index--;
+    index--
 	next = jumplist[index]
-	log.Printf("go to: %s", next)
+    log.Printf("go to: %d", next)
 
 	navigating = true
-	if index == len(jumplist) - 1 {
+    if index == len(jumplist)-1 {
 		start_navigating = true
 	}
 
-	_, err = i3.RunCommand(fmt.Sprintf("workspace %s", next))
+	err = runWorkspaceCommand(next)
 	if err != nil && !i3.IsUnsuccessful(err) {
 		res.Status = fmt.Sprintf("i3.RunCommand() failed with %s\n", err)
 		return err
@@ -59,15 +89,15 @@ func (*JumplistNav) Forward(req Request, res *Response) (err error) {
 		res.Status = "ignoring client due to empty jumplist"
 		return
 	}
-	if index >= len(jumplist) - 1 {
+    if index >= len(jumplist)-1 {
 		res.Status = "at end of history"
 		return
 	}
 	index++
 	next = jumplist[index]
-	log.Printf("go to: %s", next)
+    log.Printf("go to: %d", next)
 
-	_, err = i3.RunCommand(fmt.Sprintf("workspace %s", next))
+	err = runWorkspaceCommand(next)
 	if err != nil && !i3.IsUnsuccessful(err) {
 		res.Status = fmt.Sprintf("i3.RunCommand() failed with %s\n", err)
 		return err
@@ -101,14 +131,17 @@ func server(sway bool, rpcEndpoint string) {
 		for recv.Next() {
 			ev := recv.Event().(*i3.WorkspaceEvent)
 			if ev.Change == "focus" {
-				if navigating && next != ev.Current.Name {
+				currentWorkspace := extractWorkspaceNumberOrName(ev.Current.Name)
+				oldWorkspace := extractWorkspaceNumberOrName(ev.Old.Name)
+
+				if navigating && next != currentWorkspace {
 					navigating = false
 					start_navigating = false
 					index = len(jumplist)
 					log.Printf("no longer navigating history")
 				} else if !navigating || start_navigating {
 					for i, e := range jumplist {
-						if e == ev.Old.Name {
+						if e == oldWorkspace {
 							jumplist = append(jumplist[:i], jumplist[i+1:]...)
 							if start_navigating {
 								index--
@@ -116,15 +149,15 @@ func server(sway bool, rpcEndpoint string) {
 							break
 						}
 					}
-					jumplist = append(jumplist, ev.Old.Name)
+					jumplist = append(jumplist, oldWorkspace)
 					if !start_navigating {
 						index = len(jumplist)
 					} else {
 						start_navigating = false
 					}
 				}
-				log.Printf("current jumplist: %s", jumplist)
-				log.Printf("current index: %s", index)
+                log.Printf("current jumplist: %v", jumplist)
+                log.Printf("current index: %d", index)
 			}
 		}
 	}()
@@ -139,7 +172,7 @@ func server(sway bool, rpcEndpoint string) {
 
 	go rpc.Accept(listener)
 
-	select{}
+    select {}
 }
 
 func forward(sway bool, rpcEndpoint string) {
@@ -195,7 +228,7 @@ func main() {
 		case "forward":
 			forward(*sway, rpcEndpoint)
 		default:
-			fmt.Fprintln(os.Stderr, "Mode must be one of server, back, or forward.\n\n" +
+        fmt.Fprintln(os.Stderr, "Mode must be one of server, back, or forward.\n\n"+
 				"Usage: i3-workspace-history")
 			os.Exit(1)
 	}
