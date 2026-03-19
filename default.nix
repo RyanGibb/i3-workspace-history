@@ -1,20 +1,8 @@
-{ pkgs ? (
-    let
-      inherit (builtins) fetchTree fromJSON readFile;
-      inherit ((fromJSON (readFile ./flake.lock)).nodes) nixpkgs gomod2nix;
-    in
-    import (fetchTree nixpkgs.locked) {
-      overlays = [
-        (import "${fetchTree gomod2nix.locked}/overlay.nix")
-      ];
-    }
-  )
-}:
+{ pkgs ? import <nixpkgs> {} }:
 
-pkgs.buildGoApplication {
+pkgs.ocamlPackages.buildDunePackage {
   pname = "i3-workspace-history";
-  version = "0.1";
-  pwd = ./.;
+  version = "1.0";
   src = ./.;
-  modules = ./gomod2nix.toml;
+  buildInputs = with pkgs.ocamlPackages; [ yojson cmdliner ];
 }

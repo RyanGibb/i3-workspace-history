@@ -1,0 +1,13 @@
+opam-version: "2.0"
+name: "i3-workspace-history"
+version: "1.0"
+synopsis: "Vim-like jumplist for i3/sway workspaces"
+depends: [
+  "ocaml" {>= "4.14"}
+  "dune" {>= "3.0"}
+  "yojson" {>= "2.0"}
+  "cmdliner" {>= "1.1"}
+]
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+]

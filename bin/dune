@@ -1,0 +1,4 @@
+(executable
+ (name main)
+ (public_name i3-workspace-history)
+ (libraries unix yojson cmdliner))

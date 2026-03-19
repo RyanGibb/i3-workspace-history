@@ -10,14 +10,14 @@ The back/forward modes use an RPC over a Unix domain socket to communicate to th
 The history works like vim's jumplist, so while traversing it the list stays constant.
 If you switch workspace while traversing the history, the history will not be truncated, rather the new workspace will be appended to the history.
 
-To enable sway support, invoke the executables with `-sway` as a command line argument.
+To enable sway support, pass `--sway`.
 Different domain sockets are used for i3 and sway, so this should work for both running at the same time, though this is untested.
 
 You might find the following configuration useful:
 ```
-bindsym $mod+i exec i3-workspace-history -mode=forward
-bindsym $mod+o exec i3-workspace-history -mode=back
+bindsym $mod+i exec i3-workspace-history --mode=forward
+bindsym $mod+o exec i3-workspace-history --mode=back
 exec i3-workspace-history
 ```
 
-This project can be built using Nix with `nix build .`, or go with `go build i3-workspace-history.go`.
+This project can be built using Nix with `nix build .`, or with `dune build`.
